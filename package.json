@@ -4,7 +4,11 @@
   "description": "Projeto que tem como base o tabnews.com.br",
   "main": "index.js",
   "scripts": {
+    "dev:db": "npm run services:up && npm run dev",
     "dev": "next dev",
+    "services:up": "docker compose -f infra/compose.yaml up -d",
+    "services:stop": "docker compose -f infra/compose.yaml stop",
+    "services:down": "docker compose -f infra/compose.yaml down",
     "lint:check": "prettier --check .",
     "lint:fix": "prettier --write .",
     "test": "jest",
