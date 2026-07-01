@@ -9,9 +9,16 @@ async function query(queryObject) {
     database: process.env.POSTGRES_DB,
     password: process.env.POSTGRES_PASSWORD,
   });
+  console.log("Credencias DB: ", {
+    host: process.env.POSTGRES_HOST,
+    port: process.env.POSTGRES_PORT,
+    user: process.env.POSTGRES_USER,
+    database: process.env.POSTGRES_DB,
+    password: process.env.POSTGRES_PASSWORD,
+  });
   // let result; // Declare result fora do bloco try
-  await client.connect();
   try {
+    await client.connect();
     const result = await client.query(queryObject); // Atribua a result
     return result; // Agora result está acessível aqui
   } catch (err) {
