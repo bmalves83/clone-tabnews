@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import retry from "async-retry";
 
 async function waitForAllServices() {
@@ -19,6 +20,7 @@ async function waitForAllServices() {
   }
 }
 
-export default {
+const orchestrator = {
   waitForAllServices,
 };
+export default orchestrator;
