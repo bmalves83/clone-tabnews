@@ -8,8 +8,9 @@ async function fetchAPI(key) {
 export default function StatusPage() {
   return (
     <>
-      <h1>Status Page</h1>
+      <h1>Status</h1>
       <UpdatedAt />
+      <DataBaseStatus />
     </>
   );
 }
@@ -20,23 +21,45 @@ function UpdatedAt() {
   });
 
   let updatedAtText = "Carregando...";
-  let dbMax = "";
-  let usedConn = "";
-  let versionDB = "";
 
   if (!isLoading && data) {
     updatedAtText = new Date(data.updated_at).toLocaleString("pt-BR");
-    dbMax = `Conexões Máximas: ${data.dependencies.database.max_conn}`;
-    usedConn = `Conexões Utilizadas: ${data.dependencies.database.used_conn}`;
-    versionDB = `Versão do Banco de Dados: ${data.dependencies.database.version}`;
   }
 
   return (
     <>
       <p>Última atualização: {updatedAtText}</p>
-      <p>{versionDB}</p>
-      <p>{dbMax}</p>
-      <p>{usedConn}</p>
+    </>
+  );
+}
+
+function DataBaseStatus() {
+  const { isLoading, data } = useSWR("/api/v1/status", fetchAPI);
+
+  let database_info = "Carregando...";
+
+  if (!isLoading && data) {
+    database_info = (
+      <>
+        <p>
+          <b>Versão</b> do Banco de Dados:{" "}
+          <i>{data.dependencies.database.version}</i>
+        </p>
+        <p>
+          Conexões <b>Máximas:</b> <i>{data.dependencies.database.max_conn}</i>
+        </p>
+        <p>
+          Conexões <b>Utilizadas:</b>{" "}
+          <i>{data.dependencies.database.used_conn}</i>
+        </p>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <h2>Status do Banco de Dados</h2>
+      {database_info}
     </>
   );
 }
