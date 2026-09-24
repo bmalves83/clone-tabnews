@@ -7,10 +7,11 @@ async function query(queryObject) {
     const result = await client.query(queryObject); // Atribua a result
     return result; // Agora result está acessível aqui
   } catch (err) {
+    console.log("\n Erro dentro do catch do database");
     console.error("Erro na consulta:", err);
     throw err; // Re-lança o erro para que o chamador possa tratá-lo
   } finally {
-    await client.end(); // Garante que a conexão seja fechada
+    await client?.end(); // Garante que a conexão seja fechada
   }
 }
 
