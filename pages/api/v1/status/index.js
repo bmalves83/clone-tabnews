@@ -1,45 +1,39 @@
+import { createRouter } from "next-connect";
 import database from "infra/database.js";
-import { InternalServerError } from "infra/errors";
+import controller from "infra/controller.js";
 
-async function status(request, response) {
-  try {
-    const updatedAt = new Date().toISOString();
+const router = createRouter();
 
-    const dbVersion = await database.query("SHOW server_version;");
-    const dbResult = dbVersion.rows[0].server_version;
+router.get(getHandler);
 
-    const maxConn = await database.query("SHOW max_connections;");
-    const maxResult = maxConn.rows[0].max_connections;
+export default router.handler(controller.errorHandlers);
 
-    const dbname = process.env.POSTGRES_DB;
-    const usedConn = await database.query({
-      text: "SELECT COUNT(*)::int FROM pg_stat_activity WHERE datname = $1;",
-      values: [dbname],
-    });
-    const usedResult = usedConn.rows[0].count;
+async function getHandler(request, response) {
+  const updatedAt = new Date().toISOString();
 
-    const dependencies = {
-      database: {
-        version: dbResult,
-        max_conn: parseInt(maxResult),
-        used_conn: usedResult,
-      },
-    };
+  const dbVersion = await database.query("SHOW server_version;");
+  const dbResult = dbVersion.rows[0].server_version;
 
-    response.status(200).json({
-      updated_at: updatedAt,
-      dependencies,
-    });
-  } catch (error) {
-    const publicErrorObject = new InternalServerError({
-      cause: error,
-    });
+  const maxConn = await database.query("SHOW max_connections;");
+  const maxResult = maxConn.rows[0].max_connections;
 
-    console.log("\n Erro dentro do catch do controller");
+  const dbname = process.env.POSTGRES_DB;
+  const usedConn = await database.query({
+    text: "SELECT COUNT(*)::int FROM pg_stat_activity WHERE datname = $1;",
+    values: [dbname],
+  });
+  const usedResult = usedConn.rows[0].count;
 
-    console.error(publicErrorObject);
-    response.status(500).json(publicErrorObject);
-  }
+  const dependencies = {
+    database: {
+      version: dbResult,
+      max_conn: parseInt(maxResult),
+      used_conn: usedResult,
+    },
+  };
+
+  response.status(200).json({
+    updated_at: updatedAt,
+    dependencies,
+  });
 }
-
-export default status;
