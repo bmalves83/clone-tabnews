@@ -6,8 +6,7 @@ function getPepper() {
   const pepper = process.env.PASSWORD_PEPPER;
   if (!pepper) {
     throw new NotFoundError({
-      message: "PASSWORD_PEPPER is not defined",
-      action: "Entre em contato com o suporte",
+      action: "PEPPER não encontrado",
     });
   }
   return pepper;
