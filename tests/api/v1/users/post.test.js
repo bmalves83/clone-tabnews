@@ -1,5 +1,7 @@
 import { version as uuidVersion } from "uuid";
 import orchestrator from "tests/orchestrator.js";
+import user from "models/user.js";
+import password from "models/password.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -16,8 +18,8 @@ describe("Post api/v1/users", () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: "filipedeschamps",
-          email: "filiped@example.com",
+          username: "bmalves1983",
+          email: "bmalves1983@example.com",
           password: "password123",
         }),
       });
@@ -28,9 +30,9 @@ describe("Post api/v1/users", () => {
 
       expect(responseBody).toEqual({
         id: responseBody.id,
-        username: "filipedeschamps",
-        email: "filiped@example.com",
-        password: "password123",
+        username: "bmalves1983",
+        email: "bmalves1983@example.com",
+        password: responseBody.password,
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
@@ -38,6 +40,20 @@ describe("Post api/v1/users", () => {
       expect(uuidVersion(responseBody.id)).toBe(4);
       expect(Date.parse(responseBody.created_at)).not.toBeNaN();
       expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
+
+      const userInDatabase = await user.findOneByUsername("bmalves1983");
+
+      const correctPasswordMatch = await password.compare(
+        "password123",
+        userInDatabase.password,
+      );
+      expect(correctPasswordMatch).toBe(true);
+
+      const incorrectPasswordMatch = await password.compare(
+        "passwordfalse",
+        userInDatabase.password,
+      );
+      expect(incorrectPasswordMatch).toBe(false);
     });
 
     test("With duplicated 'email'", async () => {
@@ -74,7 +90,7 @@ describe("Post api/v1/users", () => {
       expect(responseBody2).toEqual({
         name: "ValidationError",
         message: "O email utilizado já existe.",
-        action: "Utilize outro email para realizar o cadastro.",
+        action: "Utilize outro email para realizar esta operação.",
         status_code: 400,
       });
     });
@@ -113,7 +129,7 @@ describe("Post api/v1/users", () => {
       expect(responseBody2).toEqual({
         name: "ValidationError",
         message: "O username utilizado já existe.",
-        action: "Utilize outro username para realizar o cadastro.",
+        action: "Utilize outro username para realizar esta operação.",
         status_code: 400,
       });
     });

@@ -1,5 +1,6 @@
 import database from "infra/database.js";
 import { ValidationError, NotFoundError } from "infra/errors.js";
+import password from "models/password.js";
 
 async function findOneByUsername(username) {
   const userFound = await runSelectQuery(username);
@@ -33,16 +34,9 @@ async function findOneByUsername(username) {
   }
 }
 
-async function create(userInputValues) {
-  await validateUniqueEmail(userInputValues.email);
-  await validateUniqueUsername(userInputValues.username);
-
-  const newUser = await runInsertQuery(userInputValues);
-  return newUser;
-
-  async function validateUniqueEmail(email) {
-    const results = await database.query({
-      text: `
+async function validateUniqueEmail(email) {
+  const results = await database.query({
+    text: `
     SELECT 
       email 
     FROM 
@@ -50,20 +44,20 @@ async function create(userInputValues) {
     WHERE 
       LOWER(email) = LOWER($1)
     ;`,
-      values: [email],
+    values: [email],
+  });
+
+  if (results.rowCount > 0) {
+    throw new ValidationError({
+      message: "O email utilizado já existe.",
+      action: "Utilize outro email para realizar esta operação.",
     });
-
-    if (results.rowCount > 0) {
-      throw new ValidationError({
-        message: "O email utilizado já existe.",
-        action: "Utilize outro email para realizar o cadastro.",
-      });
-    }
   }
+}
 
-  async function validateUniqueUsername(username) {
-    const results = await database.query({
-      text: `
+async function validateUniqueUsername(username) {
+  const results = await database.query({
+    text: `
     SELECT 
       username 
     FROM 
@@ -71,16 +65,54 @@ async function create(userInputValues) {
     WHERE 
       LOWER(username) = LOWER($1)
     ;`,
-      values: [username],
-    });
+    values: [username],
+  });
 
-    if (results.rowCount > 0) {
-      throw new ValidationError({
-        message: "O username utilizado já existe.",
-        action: "Utilize outro username para realizar o cadastro.",
-      });
-    }
+  if (results.rowCount > 0) {
+    throw new ValidationError({
+      message: "O username utilizado já existe.",
+      action: "Utilize outro username para realizar esta operação.",
+    });
   }
+}
+
+async function runUpdateQuery(userWithNewValues) {
+  const results = await database.query({
+    text: `
+    UPDATE 
+      users 
+    SET 
+      username = $1,
+      email = $2,
+      password = $3,
+      updated_at = timezone('UTC', now())
+    WHERE 
+      id = $4
+    RETURNING 
+      *
+    ;`,
+    values: [
+      userWithNewValues.username,
+      userWithNewValues.email,
+      userWithNewValues.password,
+      userWithNewValues.id,
+    ],
+  });
+  return results.rows[0];
+}
+
+async function hashPasswordInObject(userInputValues) {
+  const hashedPassword = await password.hash(userInputValues.password);
+  userInputValues.password = hashedPassword;
+}
+
+async function create(userInputValues) {
+  await validateUniqueUsername(userInputValues.username);
+  await validateUniqueEmail(userInputValues.email);
+  await hashPasswordInObject(userInputValues);
+
+  const newUser = await runInsertQuery(userInputValues);
+  return newUser;
 
   async function runInsertQuery(userInputValues) {
     const results = await database.query({
@@ -103,9 +135,35 @@ async function create(userInputValues) {
   }
 }
 
+async function update(username, userInputValues) {
+  const currentUser = await findOneByUsername(username);
+
+  if (
+    "username" in userInputValues &&
+    username.toLowerCase() !== userInputValues.username.toLowerCase()
+  ) {
+    await validateUniqueUsername(userInputValues.username);
+  }
+
+  if ("email" in userInputValues) {
+    await validateUniqueEmail(userInputValues.email);
+  }
+
+  if ("password" in userInputValues) {
+    await hashPasswordInObject(userInputValues);
+  }
+
+  const userWithNewValues = { ...currentUser, ...userInputValues };
+
+  const updatedUser = await runUpdateQuery(userWithNewValues);
+
+  return updatedUser;
+}
+
 const user = {
   create,
   findOneByUsername,
+  update,
 };
 
 export default user;
