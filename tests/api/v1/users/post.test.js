@@ -11,6 +11,49 @@ beforeAll(async () => {
 
 describe("Post api/v1/users", () => {
   describe("Anonymous user", () => {
+    test("Without 'password'", async () => {
+      const response = await fetch("http://localhost:3000/api/v1/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: "withoutPassword",
+          email: "without.password@example.com",
+        }),
+      });
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({
+        name: "ValidationError",
+        message: "A senha é obrigatória.",
+        action: "Informe uma senha válida para realizar esta operação.",
+        status_code: 400,
+      });
+    });
+
+    test("With empty 'password'", async () => {
+      const response = await fetch("http://localhost:3000/api/v1/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: "emptyPassword",
+          email: "empty.password@example.com",
+          password: "",
+        }),
+      });
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({
+        name: "ValidationError",
+        message: "A senha é obrigatória.",
+        action: "Informe uma senha válida para realizar esta operação.",
+        status_code: 400,
+      });
+    });
+
     test("With unique valid data", async () => {
       const response = await fetch("http://localhost:3000/api/v1/users", {
         method: "POST",
