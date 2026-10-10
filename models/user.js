@@ -76,6 +76,15 @@ async function validateUniqueUsername(username) {
   }
 }
 
+async function validatePassword(passwordValue) {
+  if (typeof passwordValue !== "string" || passwordValue.trim().length === 0) {
+    throw new ValidationError({
+      message: "A senha é obrigatória.",
+      action: "Informe uma senha válida para realizar esta operação.",
+    });
+  }
+}
+
 async function runUpdateQuery(userWithNewValues) {
   const results = await database.query({
     text: `
@@ -109,6 +118,7 @@ async function hashPasswordInObject(userInputValues) {
 async function create(userInputValues) {
   await validateUniqueUsername(userInputValues.username);
   await validateUniqueEmail(userInputValues.email);
+  await validatePassword(userInputValues.password);
   await hashPasswordInObject(userInputValues);
 
   const newUser = await runInsertQuery(userInputValues);
@@ -150,6 +160,7 @@ async function update(username, userInputValues) {
   }
 
   if ("password" in userInputValues) {
+    await validatePassword(userInputValues.password);
     await hashPasswordInObject(userInputValues);
   }
 
