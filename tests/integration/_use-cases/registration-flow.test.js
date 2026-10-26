@@ -22,7 +22,7 @@ describe("Use case: Registration Flow (all successful)", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: "RegistrationFlow",
-          email: "registration@teste.com.br",
+          email: "registration.flow@teste.com.br",
           password: "RegistrationPassword",
         }),
       },
@@ -35,7 +35,7 @@ describe("Use case: Registration Flow (all successful)", () => {
     expect(createUserResponseBody).toEqual({
       id: createUserResponseBody.id,
       username: "RegistrationFlow",
-      email: "registration@teste.com.br",
+      email: "registration.flow@teste.com.br",
       features: ["read:activation_token"],
       password: createUserResponseBody.password,
       created_at: createUserResponseBody.created_at,
@@ -47,7 +47,7 @@ describe("Use case: Registration Flow (all successful)", () => {
     const lastEmail = await orchestrator.getLastEmail();
 
     expect(lastEmail.sender).toBe("<contato@bmalves83.com.br>");
-    expect(lastEmail.recipients[0]).toBe("<registration@teste.com.br>");
+    expect(lastEmail.recipients[0]).toBe("<registration.flow@teste.com.br>");
     expect(lastEmail.subject).toBe("Ative seu cadastro no BMAlves83");
     expect(lastEmail.text).toContain("RegistrationFlow");
 
@@ -80,7 +80,25 @@ describe("Use case: Registration Flow (all successful)", () => {
     expect(activadedUser.features).toEqual(["create:session"]);
   });
 
-  test("Login", async () => {});
+  test("Login", async () => {
+    const createSessionsResponse = await fetch(
+      "http://localhost:3000/api/v1/sessions",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "registration.flow@teste.com.br",
+          password: "RegistrationPassword",
+        }),
+      },
+    );
+
+    expect(createSessionsResponse.status).toBe(201);
+
+    const createSessionsResponseBody = await createSessionsResponse.json();
+
+    expect(createSessionsResponseBody.user_id).toBe(createUserResponseBody.id);
+  });
 
   test("Get user information", async () => {});
 });
