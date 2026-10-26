@@ -1,6 +1,7 @@
 import email from "infra/email.js";
 import database from "infra/database.js";
 import webserver from "infra/webserver.js";
+import { NotFoundError } from "infra/errors.js";
 
 const EXPIRATION_IN_MILLISECONDS = 60 * 15 * 1000; // 15 minutes
 
@@ -41,11 +42,11 @@ Equipe BMAlves83`,
   });
 }
 
-async function findOneByUserId(userId) {
-  const newToken = await runSelectQuery(userId);
+async function findOneValidById(tokenId) {
+  const newToken = await runSelectQuery(tokenId);
   return newToken;
 
-  async function runSelectQuery(userId) {
+  async function runSelectQuery(tokenId) {
     const results = await database.query({
       text: `
       SELECT
@@ -53,12 +54,24 @@ async function findOneByUserId(userId) {
       FROM
         user_activation_tokens
       WHERE
-        user_id = $1
+        id = $1
+      AND
+        used_at IS NULL
+      AND
+        expires_at > NOW()
       LIMIT
         1  
       ;`,
-      values: [userId],
+      values: [tokenId],
     });
+
+    if (results.rowCount === 0) {
+      throw new NotFoundError({
+        name: "NotFoundError",
+        message: "Não foi encontrado token válido.",
+        action: "Refaça o cadastro e tente novamente.",
+      });
+    }
 
     return results.rows[0];
   }
@@ -67,7 +80,7 @@ async function findOneByUserId(userId) {
 const activation = {
   create,
   sendEmailToUser,
-  findOneByUserId,
+  findOneValidById,
 };
 
 export default activation;
