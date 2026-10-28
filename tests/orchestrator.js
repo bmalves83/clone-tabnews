@@ -66,6 +66,12 @@ async function activateUser(inactiveUserId) {
   return await activation.activateUserByUserId(inactiveUserId);
 }
 
+async function addFeaturesToUser(userId, features) {
+  const updatedUser = await user.addFeatures(userId, features);
+
+  return updatedUser;
+}
+
 async function createSession(userId) {
   return await session.create(userId);
 }
@@ -112,5 +118,6 @@ const orchestrator = {
   deleteAllEmails,
   getLastEmail,
   extractUUID,
+  addFeaturesToUser,
 };
 export default orchestrator;
