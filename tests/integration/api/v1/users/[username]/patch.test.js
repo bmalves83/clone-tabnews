@@ -106,6 +106,43 @@ describe("PATCH api/v1/users/[username]", () => {
       });
     });
 
+    test("With `user02` targeting `user01`", async () => {
+      await orchestrator.createUser({
+        username: "user01",
+      });
+
+      const createdUser2 = await orchestrator.createUser({
+        username: "user02",
+      });
+      const activadedUser2 = await orchestrator.activateUser(createdUser2.id);
+      const sessionObject2 = await orchestrator.createSession(
+        activadedUser2.id,
+      );
+
+      const response = await fetch("http://localhost:3000/api/v1/users/user1", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          cookie: `session_id=${sessionObject2.token}`,
+        },
+        body: JSON.stringify({
+          username: "user03",
+        }),
+      });
+
+      expect(response.status).toBe(403);
+
+      const responseBody = await response.json();
+
+      expect(responseBody).toEqual({
+        action:
+          "Verifique se você possui a feature necessária para atualizar outro usuário.",
+        message: "Você não possui permissão para atualizar outro usuário",
+        name: "ForbiddenError",
+        status_code: 403,
+      });
+    });
+
     test("With unique 'username'", async () => {
       const createdUser = await orchestrator.createUser({
         username: "uniqueUser01",
@@ -230,6 +267,46 @@ describe("PATCH api/v1/users/[username]", () => {
       expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
 
       expect(responseBody.updated_at > responseBody.created_at).toBe(true);
+    });
+
+    test("With `useremail2` trying change email 'useremail1'", async () => {
+      const createdUser1 = await orchestrator.createUser({
+        email: "useremail1@example.com",
+      });
+
+      const createdUser2 = await orchestrator.createUser({
+        email: "useremail2@example.com",
+      });
+      const activadedUser2 = await orchestrator.activateUser(createdUser2.id);
+      const sessionObject2 = await orchestrator.createSession(
+        activadedUser2.id,
+      );
+
+      const response = await fetch(
+        `http://localhost:3000/api/v1/users/${createdUser1.username}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            cookie: `session_id=${sessionObject2.token}`,
+          },
+          body: JSON.stringify({
+            email: "useremail3@example.com",
+          }),
+        },
+      );
+
+      expect(response.status).toBe(403);
+
+      const responseBody = await response.json();
+
+      expect(responseBody).toEqual({
+        action:
+          "Verifique se você possui a feature necessária para atualizar outro usuário.",
+        message: "Você não possui permissão para atualizar outro usuário",
+        name: "ForbiddenError",
+        status_code: 403,
+      });
     });
 
     test("With duplicated 'email'", async () => {
