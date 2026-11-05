@@ -32,7 +32,7 @@ async function create(userId) {
 
 async function sendEmailToUser(user, activationToken) {
   await email.send({
-    from: "BMALves83 <contato@bmalves83.com.br>",
+    from: "BMALves83 <contato@alerts.bmalves83.com.br>",
     to: user.email,
     subject: "Ative seu cadastro no BMAlves83",
     text: `${user.username}, clique no link abaixo para ativar seu cadastro no BMAlves83:
