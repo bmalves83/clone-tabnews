@@ -20,14 +20,15 @@ export class InternalServerError extends Error {
 }
 
 export class ServiceError extends Error {
-  constructor({ cause, message }) {
+  constructor({ cause, message, action, context }) {
     super(message || "Serviço indiponível no momento.", {
       cause,
     });
 
     this.name = "ServiceError";
-    this.action = "Verifique a disponibilidade do serviço";
+    this.action = action || "Verifique a disponibilidade do serviço";
     this.statusCode = 503;
+    this.context = context || "";
   }
 
   toJSON() {
@@ -35,6 +36,7 @@ export class ServiceError extends Error {
       name: this.name,
       message: this.message,
       action: this.action,
+      context: this.context,
       status_code: this.statusCode,
     };
   }
