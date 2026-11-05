@@ -1,6 +1,5 @@
 import orchestrator from "tests/orchestrator.js";
 import webserver from "infra/webserver.js";
-import { act } from "react";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
