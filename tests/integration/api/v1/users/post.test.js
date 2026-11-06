@@ -11,7 +11,7 @@ beforeAll(async () => {
 
 describe("Post api/v1/users", () => {
   describe("Anonymous user", () => {
-    test("Without 'password'", async () => {
+    test("Without `password`", async () => {
       const response = await fetch("http://localhost:3000/api/v1/users", {
         method: "POST",
         headers: {
@@ -32,7 +32,7 @@ describe("Post api/v1/users", () => {
       });
     });
 
-    test("With empty 'password'", async () => {
+    test("With empty `password`", async () => {
       const response = await fetch("http://localhost:3000/api/v1/users", {
         method: "POST",
         headers: {
@@ -98,7 +98,7 @@ describe("Post api/v1/users", () => {
       expect(incorrectPasswordMatch).toBe(false);
     });
 
-    test("With duplicated 'email'", async () => {
+    test("With duplicated `email`", async () => {
       const response1 = await fetch("http://localhost:3000/api/v1/users", {
         method: "POST",
         headers: {
@@ -137,7 +137,7 @@ describe("Post api/v1/users", () => {
       });
     });
 
-    test("With duplicated 'username'", async () => {
+    test("With duplicated `username`", async () => {
       const response1 = await fetch("http://localhost:3000/api/v1/users", {
         method: "POST",
         headers: {
