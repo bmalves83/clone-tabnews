@@ -3,12 +3,11 @@ import controller from "infra/controller.js";
 import user from "models/user.js";
 import activation from "models/activation.js";
 import authorization from "models/authorization.js";
-const router = createRouter();
 
-router.use(controller.injectAnonimousOrUser);
-router.post(controller.canRequest("create:user"), postHandler);
-
-export default router.handler(controller.errorHandlers);
+export default createRouter()
+  .use(controller.injectAnonimousOrUser)
+  .post(controller.canRequest("create:user"), postHandler)
+  .handler(controller.errorHandlers);
 
 async function postHandler(request, response) {
   const userTryinToPost = request.context.user;
