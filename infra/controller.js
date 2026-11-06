@@ -44,7 +44,7 @@ function setSessionCookie(sessionToken, response) {
     value: sessionToken,
     path: "/",
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "lax",
     maxAge: session.EXPIRATION_IN_MILISECONDS / 1000,
     secure: process.env.NODE_ENV === "production" ? true : false,
   });
